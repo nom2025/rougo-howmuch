@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nom2025.github.io/rougo-howmuch/sitemap.xml

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ŒÇÑ HOW MUCH?">
+  <rect width="64" height="64" rx="14" fill="#43296b"/>
+  <g fill="none" stroke="#c9a227" stroke-width="4" stroke-linecap="round" opacity="0.9">
+    <line x1="16" y1="50" x2="16" y2="42"/>
+    <line x1="25" y1="50" x2="25" y2="36"/>
+    <line x1="34" y1="50" x2="34" y2="30"/>
+  </g>
+  <text x="40" y="30" font-family="Arial, 'Helvetica Neue', sans-serif" font-size="30" font-weight="700" text-anchor="middle" fill="#c9a227">¥</text>
+</svg>
