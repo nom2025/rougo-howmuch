@@ -310,6 +310,19 @@ main {
 .readme li { margin: 6px 0; line-height: 1.6; }
 .readme code { background: #f2f0f8; padding: 1px 6px; border-radius: 5px; font-size: .82rem; }
 .readme .src { color: var(--muted); font-size: .82rem; line-height: 1.6; margin: 10px 0 14px; }
+.readme .faq { margin: 10px 0 14px; }
+.readme .faq dt { font-weight: 700; color: var(--accent); font-size: .86rem; margin-top: 12px; }
+.readme .faq dt:first-child { margin-top: 0; }
+.readme .faq dd { margin: 4px 0 0; padding-left: 0; color: #333; font-size: .86rem; line-height: 1.6; }
+.readme .datalist { list-style: none; padding-left: 0; }
+.readme .datalist li { padding-left: 16px; position: relative; }
+.readme .datalist li::before { content: "•"; color: var(--gold); position: absolute; left: 2px; }
+.readme .upd-h { font-weight: 700; color: var(--accent); font-size: .86rem; margin: 12px 0 2px; }
+.notice-strip {
+  max-width: 900px; margin: -6px auto 16px; padding: 10px 14px;
+  background: #f6faf6; border: 1px solid #d9e7d9; border-radius: 10px;
+  color: #35503a; font-size: .82rem; line-height: 1.6; text-align: center;
+}
 
 /* 結果シェア */
 .share {
