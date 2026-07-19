@@ -11,6 +11,35 @@ function track(name, params) {
   }
 }
 
+// ---- simulation_finished：この人が「最終的にどんな条件で使ったか」を1イベントに集約 ----
+// リアルタイム計算なので「計算完了」は存在しない。途中の遊びは送らず、落ち着いた最終状態だけ送る。
+let lastSimState = null;   // 直近renderの状態スナップショット
+let simSentSig = null;     // 最後に送った状態の署名（同一状態の重複送信を防止）
+let finishTimer = null;    // 一定時間操作が止まったら「落ち着いた」とみなすタイマー
+
+// 結果は金額そのものでなく「帯」で送る（プライバシー配慮＋集計しやすさ）
+function resultBand(needMan) {
+  if (needMan < 1000) return "0-1000";
+  if (needMan < 2000) return "1000-2000";
+  if (needMan < 3000) return "2000-3000";
+  if (needMan < 4000) return "3000-4000";
+  return "4000+";
+}
+
+function sendSimulationFinished(trigger, force) {
+  if (!lastSimState) return;
+  const sig = JSON.stringify(lastSimState);
+  if (!force && sig === simSentSig) return; // 状態が変わっていなければ送らない
+  simSentSig = sig;
+  track("simulation_finished", Object.assign({ trigger: trigger }, lastSimState));
+}
+
+// 操作が止まって30秒経ったら「落ち着いた最終状態」として送る（都度リセット）
+function scheduleFinish() {
+  if (finishTimer) clearTimeout(finishTimer);
+  finishTimer = setTimeout(() => sendSimulationFinished("settled"), 30000);
+}
+
 // 都道府県セレクトを生成
 const prefsSorted = [...PREF_DATA].sort((a, b) => a.name.localeCompare(b.name, "ja"));
 const sel = $("pref");
@@ -462,6 +491,17 @@ function render() {
 
   renderCompare(pref, ranked, rNormal, rank);
   renderSensitivity(pref, opts, normalSc);
+
+  // 「最終的にどんな条件で使ったか」用のスナップショットを更新し、落ち着き検知を仕込む
+  lastSimState = {
+    prefecture: sel.value,
+    housing: opts.tenure,        // own / rent
+    household: opts.household,   // couple / single
+    style: opts.style,           // actual / rich / standard / frugal
+    pension_mode: opts.mode,     // flat / region
+    result_band: resultBand(needMan),
+  };
+  scheduleFinish();
 }
 
 // 「年金の範囲で（倹約）」選択時は年金額で生活費が決まるため、年金変更で内訳も引き直す
@@ -548,6 +588,8 @@ function share(method) {
     window.open(sh, "_blank", "noopener,noreferrer,width=600,height=640");
   }
   track("share", { method });
+  // シェアは強い意思表示。この時点の最終条件も集約イベントで送る（重複でも送る）
+  sendSimulationFinished("share", true);
 }
 
 // イベント（GA4計測：離散的な選択のみ送信。スライダーは確定時=changeで1回だけ）
@@ -586,6 +628,12 @@ $("shareX").addEventListener("click", () => share("twitter"));
 $("shareLine").addEventListener("click", () => share("line"));
 $("shareFb").addEventListener("click", () => share("facebook"));
 $("shareCopy").addEventListener("click", () => share("copy"));
+
+// 離脱時（タブ非表示/ページ破棄）に「最後に落ち着いた条件」を1回だけ送る
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") sendSimulationFinished("pagehide");
+});
+window.addEventListener("pagehide", () => sendSimulationFinished("pagehide"));
 
 // 初期化（共有リンクで開かれた場合は状態を復元）
 renderSpread();
