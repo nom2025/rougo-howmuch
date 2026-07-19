@@ -11,11 +11,22 @@ function track(name, params) {
   }
 }
 
-// ---- simulation_finished：この人が「最終的にどんな条件で使ったか」を1イベントに集約 ----
+// ---- simulation_finished：この人が「最終的にどう使ったか」を1イベントに集約（利用行動分析）----
 // リアルタイム計算なので「計算完了」は存在しない。途中の遊びは送らず、落ち着いた最終状態だけ送る。
-let lastSimState = null;   // 直近renderの状態スナップショット
-let simSentSig = null;     // 最後に送った状態の署名（同一状態の重複送信を防止）
+let lastSimState = null;   // 直近renderの状態スナップショット（条件＝重複判定の対象）
+let simSentSig = null;     // 最後に送った状態の署名（同一条件の重複送信を防止）
 let finishTimer = null;    // 一定時間操作が止まったら「落ち着いた」とみなすタイマー
+
+// 利用行動の計測用
+const startTime = Date.now();   // 滞在時間の起点
+let changeCount = 0;            // 入力を触った回数（どれだけ遊ばれたか）
+let compareUsed = false;        // 比較チャートを見たか（スクロールで可視化）
+let sensitivityUsed = false;    // 感度分析（何が効くか）を見たか
+let dominantFactor = null;      // いまの条件で必要額を最も動かす要因（housing/prefecture/style/longevity）
+let visitType = "repeat";       // 初回/リピーター（localStorage）
+try {
+  if (!localStorage.getItem("rougo_visited")) { visitType = "first"; localStorage.setItem("rougo_visited", "1"); }
+} catch (e) { visitType = "unknown"; }
 
 // 結果は金額そのものでなく「帯」で送る（プライバシー配慮＋集計しやすさ）
 function resultBand(needMan) {
@@ -26,12 +37,32 @@ function resultBand(needMan) {
   return "4000+";
 }
 
+// 滞在時間を「帯」に（真剣に使われたかの指標）
+function engagementBand(sec) {
+  if (sec < 30) return "0-30s";
+  if (sec < 60) return "30-60s";
+  if (sec < 180) return "1-3min";
+  if (sec < 600) return "3-10min";
+  return "10min+";
+}
+
+function bumpChange() { changeCount++; }
+
 function sendSimulationFinished(trigger, force) {
   if (!lastSimState) return;
   const sig = JSON.stringify(lastSimState);
-  if (!force && sig === simSentSig) return; // 状態が変わっていなければ送らない
+  if (!force && sig === simSentSig) return; // 条件が変わっていなければ送らない
   simSentSig = sig;
-  track("simulation_finished", Object.assign({ trigger: trigger }, lastSimState));
+  const sec = Math.round((Date.now() - startTime) / 1000);
+  track("simulation_finished", Object.assign({
+    trigger: trigger,
+    engagement_band: engagementBand(sec),
+    change_count: changeCount,
+    compare_used: compareUsed ? "true" : "false",
+    sensitivity_used: sensitivityUsed ? "true" : "false",
+    visit_type: visitType,
+    app_version: APP_VERSION,
+  }, lastSimState));
 }
 
 // 操作が止まって30秒経ったら「落ち着いた最終状態」として送る（都度リセット）
@@ -285,11 +316,12 @@ function renderSensitivity(pref, opts, normalSc) {
   const health = nw(pref, opts, hardSc) - nw(pref, opts, easySc);
 
   const rows = [
-    { name: "住まい（持ち家⇄賃貸）", v: housing },
-    { name: "住む地域（都道府県）", v: region },
-    { name: "生活スタイル（倹約⇄ゆとり）", v: style },
-    { name: "健康・介護リスク（低⇄高）", v: health },
+    { name: "住まい（持ち家⇄賃貸）", key: "housing", v: housing },
+    { name: "住む地域（都道府県）", key: "prefecture", v: region },
+    { name: "生活スタイル（倹約⇄ゆとり）", key: "style", v: style },
+    { name: "健康・介護リスク（低⇄高）", key: "longevity", v: health },
   ].sort((a, b) => b.v - a.v);
+  dominantFactor = rows[0].key; // 最も必要額を動かす要因＝このアプリの肝
   const maxV = rows[0].v || 1;
   const stars = (v) => {
     const n = Math.max(1, Math.min(5, Math.round(v / maxV * 5)));
@@ -500,6 +532,7 @@ function render() {
     style: opts.style,           // actual / rich / standard / frugal
     pension_mode: opts.mode,     // flat / region
     result_band: resultBand(needMan),
+    dominant_factor: dominantFactor, // housing / prefecture / style / longevity
   };
   scheduleFinish();
 }
@@ -587,35 +620,41 @@ function share(method) {
     else if (method === "facebook") sh = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(sh, "_blank", "noopener,noreferrer,width=600,height=640");
   }
-  track("share", { method });
-  // シェアは強い意思表示。この時点の最終条件も集約イベントで送る（重複でも送る）
+  // 「どんな条件だとシェアされやすいか」を見るため、share自体にも条件を付ける
+  track("share", Object.assign({ method: method }, lastSimState || {}));
+  // シェアは強い意思表示。この時点の最終条件を集約イベントでも送る（重複でも送る）
   sendSimulationFinished("share", true);
 }
 
 // イベント（GA4計測：離散的な選択のみ送信。スライダーは確定時=changeで1回だけ）
-sel.addEventListener("change", () => { resetCategories(); render(); track("select_pref", { pref: sel.value }); });
-$("style").addEventListener("change", () => { resetCategories(); render(); track("change_style", { style: $("style").value }); });
+// change_count は「どれだけ触られたか」の指標。確定操作（change/click）でカウント。
+sel.addEventListener("change", () => { bumpChange(); resetCategories(); render(); track("select_pref", { pref: sel.value }); });
+$("style").addEventListener("change", () => { bumpChange(); resetCategories(); render(); track("change_style", { style: $("style").value }); });
 ["reserve", "workIncome", "workYears", "loanMonthly", "loanYears"].forEach((id) => {
   $(id).addEventListener("input", render);
-  $(id).addEventListener("change", () => track("adjust_slider", { control: id, value: +$(id).value }));
+  $(id).addEventListener("change", () => { bumpChange(); track("adjust_slider", { control: id, value: +$(id).value }); });
 });
 $("flatPension").addEventListener("input", onPensionChanged);
-$("flatPension").addEventListener("change", () => track("adjust_slider", { control: "flatPension", value: +$("flatPension").value }));
+$("flatPension").addEventListener("change", () => { bumpChange(); track("adjust_slider", { control: "flatPension", value: +$("flatPension").value }); });
 $("husbandPension").addEventListener("input", onPensionChanged);
-$("husbandPension").addEventListener("change", () => track("adjust_slider", { control: "husbandPension", value: +$("husbandPension").value }));
-$("wifeType").addEventListener("change", () => { onPensionChanged(); track("change_wife_type", { wife: $("wifeType").value }); });
-CATEGORIES.forEach((c) => $(`cat_${c.key}`).addEventListener("input", render));
+$("husbandPension").addEventListener("change", () => { bumpChange(); track("adjust_slider", { control: "husbandPension", value: +$("husbandPension").value }); });
+$("wifeType").addEventListener("change", () => { bumpChange(); onPensionChanged(); track("change_wife_type", { wife: $("wifeType").value }); });
+CATEGORIES.forEach((c) => {
+  $(`cat_${c.key}`).addEventListener("input", render);
+  $(`cat_${c.key}`).addEventListener("change", bumpChange); // 費目編集の確定でカウント
+});
 document.querySelectorAll('input[name="pensionMode"]').forEach((el) =>
-  el.addEventListener("change", () => { onPensionChanged(); track("change_pension_mode", { mode: el.value }); })
+  el.addEventListener("change", () => { bumpChange(); onPensionChanged(); track("change_pension_mode", { mode: el.value }); })
 );
 document.querySelectorAll('input[name="sex"]').forEach((el) =>
-  el.addEventListener("change", () => { render(); track("change_sex", { sex: el.value }); })
+  el.addEventListener("change", () => { bumpChange(); render(); track("change_sex", { sex: el.value }); })
 );
 document.querySelectorAll('input[name="tenure"]').forEach((el) =>
-  el.addEventListener("change", () => { resetCategories(); render(); track("change_tenure", { tenure: el.value }); })
+  el.addEventListener("change", () => { bumpChange(); resetCategories(); render(); track("change_tenure", { tenure: el.value }); })
 );
 document.querySelectorAll('input[name="household"]').forEach((el) =>
   el.addEventListener("change", () => {
+    bumpChange();
     // 単身に切り替えたときだけ単身の年金初期値へ（夫婦は夫＋妻の入力を使う）
     if (currentHousehold() === "single") $("flatPension").value = FLAT_PENSION_DEFAULT.single;
     resetCategories();
@@ -623,17 +662,32 @@ document.querySelectorAll('input[name="household"]').forEach((el) =>
     track("change_household", { household: el.value });
   })
 );
-$("resetCat").addEventListener("click", () => { resetCategories(); render(); track("reset_categories"); });
+$("resetCat").addEventListener("click", () => { bumpChange(); resetCategories(); render(); track("reset_categories"); });
 $("shareX").addEventListener("click", () => share("twitter"));
 $("shareLine").addEventListener("click", () => share("line"));
 $("shareFb").addEventListener("click", () => share("facebook"));
 $("shareCopy").addEventListener("click", () => share("copy"));
+
+// 目玉機能（比較チャート・感度分析）が実際に見られたかをスクロールで検知
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      if (e.target.id === "compareChart") compareUsed = true;
+      if (e.target.id === "sensList") sensitivityUsed = true;
+    });
+  }, { threshold: 0.4 });
+  ["compareChart", "sensList"].forEach((id) => { const el = $(id); if (el) io.observe(el); });
+}
 
 // 離脱時（タブ非表示/ページ破棄）に「最後に落ち着いた条件」を1回だけ送る
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") sendSimulationFinished("pagehide");
 });
 window.addEventListener("pagehide", () => sendSimulationFinished("pagehide"));
+
+// フッターにバージョン表示（改善効果を版で比較できるよう可視化）
+if ($("appVer")) $("appVer").textContent = "v" + APP_VERSION;
 
 // 初期化（共有リンクで開かれた場合は状態を復元）
 renderSpread();
