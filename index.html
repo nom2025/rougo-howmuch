@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>あなたの老後資金、HOW MUCH? ｜ 47都道府県の実データで計算する老後資金シミュレーター</title>
+
+  <!-- Google Analytics 4 -->
+  <script>
+    // ★このアプリ専用の GA4 測定ID（G-から始まる）に置き換えてください（Qiita用とは別プロパティ推奨）
+    window.GA_MEASUREMENT_ID = "G-R5G89HBK3V";
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    (function () {
+      var id = window.GA_MEASUREMENT_ID;
+      if (!id || id.indexOf("XXXX") !== -1) return; // 未設定なら計測しない（誤送信防止）
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=" + id;
+      document.head.appendChild(s);
+      gtag("js", new Date());
+      // クエリ/ハッシュを除いて計測（将来のシェア用URLパラメータでレポートが断片化しないように）
+      gtag("config", id, { page_location: location.origin + location.pathname });
+    })();
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <p class="badge">47都道府県の“実データ”で計算する老後資金シミュレーター</p>
+    <h1>その2,000万円、誰の話？</h1>
+    <p class="sub"><span>「老後2,000万円」は全国のならし。</span><span><strong>あなたの条件で計算し直す</strong>と、</span><span>必要額はまるで変わります。</span></p>
+    <div class="spread" id="spread"></div>
+  </header>
+
+  <!-- なぜ違う数字が出せるのか＝独自性 -->
+  <section class="diff-strip">
+    <div class="diff-card">
+      <span class="diff-ic">📍</span>
+      <b>地域別の実データ</b>
+      <small>47都道府県の費目内訳（家計調査）が初期値。一律平均のシミュレーターとの決定的な違い。</small>
+    </div>
+    <div class="diff-card">
+      <span class="diff-ic">🏠</span>
+      <b>持ち家／賃貸を自動反映</b>
+      <small>賃貸にすると住居費を県別の実際の家賃（住宅・土地統計調査2023）に置き換え。</small>
+    </div>
+    <div class="diff-card">
+      <span class="diff-ic">🩺</span>
+      <b>健康・介護は“幅”で提示</b>
+      <small>最大の不確実性を1点でなく3シナリオの幅で示す。</small>
+    </div>
+  </section>
+
+  <main>
+    <section class="panel inputs">
+      <h2>① 条件を入れる</h2>
+
+      <div class="field-group">
+        <span class="fg-title">あなたの状況</span>
+
+        <label>お住まい（都道府県）
+          <select id="pref"></select>
+        </label>
+
+        <label>世帯のタイプ
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="household" value="couple" checked /> 夫婦二人</label>
+            <label class="radio"><input type="radio" name="household" value="single" /> 単身</label>
+          </div>
+          <small>単身は全国比率で調整した推計です。</small>
+        </label>
+
+        <label>住まい
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="tenure" value="own" checked /> 持ち家</label>
+            <label class="radio"><input type="radio" name="tenure" value="rent" /> 賃貸</label>
+          </div>
+          <small id="tenureNote"></small>
+        </label>
+
+        <label>性別（老後の年数に影響）
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="sex" value="male" checked /> 男性</label>
+            <label class="radio"><input type="radio" name="sex" value="female" /> 女性</label>
+          </div>
+          <small id="yearsInfo"></small>
+        </label>
+      </div>
+
+      <div class="field-group">
+        <span class="fg-title">暮らし方とお金</span>
+
+        <label>生活スタイル
+          <select id="style">
+            <option value="actual" selected>県平均（実データ）</option>
+            <option value="rich">ゆとり：積極的に楽しむ（約36万/月）</option>
+            <option value="standard">標準：節約しつつ楽しむ（約24万/月）</option>
+            <option value="frugal">倹約：年金の範囲で暮らす</option>
+          </select>
+          <small>県ごとの費目バランスは保ったまま、生活費の水準だけを変えます。</small>
+        </label>
+
+        <label>年金の見方
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="pensionMode" value="flat" checked /> 全国一律で見る</label>
+            <label class="radio"><input type="radio" name="pensionMode" value="region" /> 地域差を反映</label>
+          </div>
+          <small>一律＝自分で額を設定／地域差＝選んだ県の平均受給額。</small>
+        </label>
+
+        <label id="flatWrap">想定年金（月額・<span id="flatUnit">世帯合計</span>）：<span id="flatVal"></span>
+          <input type="range" id="flatPension" min="60000" max="300000" step="5000" value="220000" />
+          <small id="flatNote"></small>
+        </label>
+
+        <label>生活の予備費（住宅修繕・葬儀・大きな交際費など）：<span id="reserveVal"></span>
+          <input type="range" id="reserve" min="0" max="20000000" step="500000" value="3000000" />
+          <small>日々の生活費とは別の「まとまった出費」の備え（例：築古の実家の<b>大規模リフォーム</b>）。<b>医療・介護は下の3シナリオで別に上乗せ</b>します。</small>
+        </label>
+      </div>
+
+      <details class="field-group optional">
+        <summary>収入・ローンを加える（任意）</summary>
+        <label>65歳以降の就労収入（月額）：<span id="workIncomeVal"></span>
+          <input type="range" id="workIncome" min="0" max="300000" step="10000" value="0" />
+        </label>
+        <label>その就労を続ける年数：<span id="workYearsVal"></span>
+          <input type="range" id="workYears" min="0" max="15" step="1" value="0" />
+        </label>
+        <label>退職後も残るローン返済（月額）：<span id="loanMonthlyVal"></span>
+          <input type="range" id="loanMonthly" min="0" max="150000" step="5000" value="0" />
+        </label>
+        <label>ローンの残り年数：<span id="loanYearsVal"></span>
+          <input type="range" id="loanYears" min="0" max="35" step="1" value="0" />
+        </label>
+      </details>
+    </section>
+
+    <section class="panel result">
+      <h2>② あなたの必要額 <span class="scenario-tag">標準シナリオ</span></h2>
+      <div class="bignum"><span id="need">―</span><span class="unit">万円</span></div>
+      <p class="perperson" id="perPerson"></p>
+      <p class="rank" id="rank"></p>
+
+      <div class="gauge">
+        <div class="gauge-row">
+          <span class="glabel">あなた</span>
+          <div class="bar"><div class="fill you" id="barYou"></div></div>
+          <span class="gval" id="youVal"></span>
+        </div>
+        <div class="gauge-row">
+          <span class="glabel">全国「2,000万円」</span>
+          <div class="bar"><div class="fill avg" id="barAvg"></div></div>
+          <span class="gval">2,000万円</span>
+        </div>
+      </div>
+      <p class="diff" id="diff"></p>
+
+      <p class="style-note" id="styleNote"></p>
+      <p class="single-note" id="singleNote"></p>
+
+      <table class="breakdown">
+        <tr><td>月の生活費（内訳の合計）</td><td id="bdCons"></td></tr>
+        <tr><td id="bdPensionLabel">月の年金（想定・世帯合計）</td><td id="bdPension"></td></tr>
+        <tr><td>月の不足額</td><td id="bdShort"></td></tr>
+        <tr><td id="bdCumLabel">不足の累計（標準）</td><td id="bdCum"></td></tr>
+        <tr id="rowWork"><td>− 65歳以降の就労収入</td><td id="bdWork"></td></tr>
+        <tr id="rowLoan"><td>＋ 退職後のローン返済</td><td id="bdLoan"></td></tr>
+        <tr><td>＋ 生活の予備費</td><td id="bdReserve"></td></tr>
+        <tr><td>＋ 健康・介護の予備費（標準）</td><td id="bdCare"></td></tr>
+      </table>
+    </section>
+  </main>
+
+  <!-- こんなに違う：同じ条件のまま他県を比較 -->
+  <section class="panel compare">
+    <h2>③ 同じ条件のまま、住む場所を変えると？</h2>
+    <p class="compare-lead" id="compareLead"></p>
+    <div id="compareChart" class="cmp-chart"></div>
+
+    <div class="sens">
+      <h3 class="sens-title">この必要額を最も動かしているのは？</h3>
+      <div id="sensList" class="sens-list"></div>
+      <p class="sens-note">★が多いほど、その選択ひとつで必要額が大きく動きます（いまの条件を基準に試算）。</p>
+    </div>
+  </section>
+
+  <section class="panel scenarios">
+    <h2>④ 健康・介護リスクの3段階（リスク低・標準・リスク高）</h2>
+    <p class="editor-note">退職後を健康に過ごせるか、早くから医療・介護が必要かで必要額は大きく変わります。1つの数字でなく“幅”で捉えるのが実態に近い見方です。</p>
+    <div id="scenarioGrid" class="scenario-grid"></div>
+    <p id="scenarioRange" class="scenario-range"></p>
+  </section>
+
+  <section class="panel editor">
+    <div class="editor-head">
+      <h2>⑤ 月の生活費の内訳（編集できます）</h2>
+      <button id="resetCat" type="button">県平均に戻す</button>
+    </div>
+    <p id="prefComment" class="pref-comment"></p>
+    <p class="editor-note">初期値は<strong>都道府県別の実際の費目内訳</strong>（家計調査）。実感に合わせて各費目を直せます（例：都心なら住居を上げる）。</p>
+    <div id="catGrid" class="cat-grid"></div>
+    <div class="cat-total">月の生活費 合計：<span id="catTotal"></span></div>
+  </section>
+
+  <!-- 解釈・前提・注意事項（最下部に集約） -->
+  <section class="panel readme">
+    <h2>解釈・前提・注意事項</h2>
+
+    <details open>
+      <summary>計算の前提と式</summary>
+      <ul>
+        <li><b>65歳で定年退職</b>し、それ以降は「年金＋貯蓄の取り崩し」で暮らす想定。</li>
+        <li><b>65歳時点の平均余命まで生きる</b>場合を想定（男性 約84歳／女性 約89歳まで）。性別で老後の年数が変わります。</li>
+        <li>計算式 ＝ <code>（毎月の生活費 − 毎月の年金）× 老後の月数 ＋ 予備費（生活＋健康・介護）</code></li>
+        <li>金額は<b>消費支出ベース</b>（税・社会保険料は簡略化）。</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>注意点（数字を鵜呑みにしない）</summary>
+      <ul>
+        <li><b>持ち家か賃貸かで住居費が激変します。</b>初期値の住居費は家計調査（持ち家が多く低め）。「住まい」を賃貸にすると住居費を県別の実際の家賃（住宅・土地統計調査2023）に自動置換します。ただし全世帯平均のため、高齢者・単身の実態とは差が出る場合があります（単身は概算換算）。</li>
+        <li>都道府県<b>平均</b>のため、同じ県でも区市町村（例：東京23区と多摩）の差は反映されません。内訳を直接編集して調整してください。</li>
+        <li>平均余命はあくまで<b>平均</b>。半分の人はそれより長生きします（長生きリスク）。</li>
+        <li>将来の年金額・物価・制度変更は織り込んでいない<b>概算の一例</b>です。</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>各項目の詳しい説明</summary>
+      <ul>
+        <li><b>世帯タイプ</b>：単身は都道府県別の公表が薄いため、全国の「単身÷夫婦」比率で費目・年金を調整した推計です。単身は規模の経済（割り勘）が効かず、家計バッファが薄くなりがちです。</li>
+        <li><b>生活スタイル</b>：ゆとり36万／標準24万は<b>夫婦2人世帯の目安</b>（生命保険文化センター「生活保障に関する調査」のゆとりある老後生活費 約37.9万円／最低日常生活費 約23.2万円を参考にした概算）。単身は総額を約0.58倍に換算。倹約は「年金の範囲」で、生活費が年金でほぼ賄えても医療・介護・まとまった出費の備えは別途必要です。</li>
+        <li><b>年金の見方</b>：全国一律＝年金額を自分で決めて全国同じ前提で見る。地域差を反映＝選んだ県の平均的な年金受給額を使う（過去の働き方・収入の地域差が反映され、県ごとに違います）。</li>
+        <li><b>生活の予備費</b>：住宅リフォーム・修繕／家電・車の買い替え／孫への大きめの交際費／葬儀・お墓など、日々の生活費とは別のまとまった出費。医療・介護は不確実性が大きいため3シナリオで別に上乗せします。</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>出典</summary>
+      <p class="src">全国家計構造調査2024・家計調査2023（e-Stat）、住宅・土地統計調査2023（賃貸選択時の県別家賃）、簡易生命表2023、生命保険文化センター「生活保障に関する調査」（生活スタイルの目安）・同「生命保険に関する全国実態調査」（介護費用の目安）を加工。費目内訳は都道府県別の実データ（10大費目）を物価補正後の総額に合わせた初期値です。</p>
+    </details>
+
+    <details id="privacy">
+      <summary>プライバシーポリシー・免責事項</summary>
+      <ul>
+        <li><b>アクセス解析</b>：本サイトは利用状況の把握・改善のため、Google アナリティクス（GA4）を使用しています。Cookie を用いて、ページの閲覧状況・操作イベント・端末/ブラウザ・おおよその地域などを収集しますが、<b>個人を特定する情報は取得しません</b>。入力した金額・条件はあなたのブラウザ内で計算され、サーバーには保存されません。</li>
+        <li><b>データの取り扱い</b>：収集データは Google に送信され、同社の規約に基づき処理されます（<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google プライバシーポリシー</a>）。</li>
+        <li><b>オプトアウト</b>：ブラウザで Cookie を無効化するか、<a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google アナリティクス オプトアウト アドオン</a>で計測を停止できます。</li>
+        <li><b>免責</b>：本ツールは公開統計を用いた<b>概算シミュレーション</b>であり、将来の金額を保証するものではありません。特定の金融商品の勧誘や投資助言ではなく、意思決定はご自身の責任でお願いします。内容は予告なく変更する場合があります。</li>
+      </ul>
+    </details>
+  </section>
+
+  <footer>
+    <p><strong>あなたの老後資金、HOW MUCH?</strong> ／ プロトタイプ v0 ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
+    <p><a href="#privacy">プライバシーポリシー・免責事項</a></p>
+  </footer>
+
+  <div class="sticky-summary" id="stickyBar">
+    <div class="ss-main">
+      <span class="ss-label">必要額（標準シナリオ）</span>
+      <span class="ss-value"><span id="ssNeed">―</span><span class="ss-unit">万円</span></span>
+      <span class="ss-delta" id="ssDelta"></span>
+    </div>
+    <div class="ss-sub" id="ssSub"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

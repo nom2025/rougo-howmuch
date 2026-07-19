@@ -1,0 +1,10 @@
+# 公開しない：戦略メモ・生データ・作業ファイル
+PROJECT.md
+仕様書.md
+data/
+
+# OneDrive / Windows の作業ファイル
+*.lnk
+.~lock.*#
+Thumbs.db
+desktop.ini
