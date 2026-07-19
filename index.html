@@ -45,13 +45,14 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <header>
     <p class="badge">47都道府県の“実データ”で計算する老後資金シミュレーター</p>
     <h1>その2,000万円、誰の話？</h1>
     <p class="sub"><span>「老後2,000万円」は全国のならし。</span><span><strong>あなたの条件で計算し直す</strong>と、</span><span>必要額はまるで変わります。</span></p>
+    <p class="hero-src">本シミュレーターは、総務省「家計調査」などの<b>公的統計</b>を用いて作成しています。</p>
     <div class="spread" id="spread"></div>
   </header>
 
@@ -327,8 +328,15 @@
     </details>
 
     <details>
-      <summary>出典</summary>
-      <p class="src">全国家計構造調査2024・家計調査2023（e-Stat）、住宅・土地統計調査2023（賃貸選択時の県別家賃）、簡易生命表2023、生命保険文化センター「生活保障に関する調査」（生活スタイルの目安）・同「生命保険に関する全国実態調査」（介護費用の目安）を加工。費目内訳は都道府県別の実データ（10大費目）を物価補正後の総額に合わせた初期値です。</p>
+      <summary>出典（公的統計・リンク付き）</summary>
+      <ul class="srclist">
+        <li>費目内訳（県別・10大費目）：総務省統計局 <a href="https://www.stat.go.jp/data/zenkokukakei/index.html" target="_blank" rel="noopener">全国家計構造調査（2024）</a></li>
+        <li>消費支出（65歳以上世帯）：総務省統計局 <a href="https://www.stat.go.jp/data/kakei/index.html" target="_blank" rel="noopener">家計調査（2023）</a></li>
+        <li>賃貸時の県別家賃：総務省統計局 <a href="https://www.stat.go.jp/data/jyutaku/index.html" target="_blank" rel="noopener">住宅・土地統計調査（2023）</a></li>
+        <li>老後年数（65歳の平均余命）：厚生労働省 <a href="https://www.mhlw.go.jp/toukei/saikin/hw/life/life23/index.html" target="_blank" rel="noopener">令和5年簡易生命表（2023）</a></li>
+        <li>生活スタイル・介護費用の目安：<a href="https://www.jili.or.jp/" target="_blank" rel="noopener">生命保険文化センター</a>「生活保障に関する調査」「生命保険に関する全国実態調査」</li>
+        <li>各データは <a href="https://www.e-stat.go.jp/" target="_blank" rel="noopener">政府統計の総合窓口（e-Stat）</a> 等で公開されています。費目内訳は物価補正後の総額に合わせた初期値です。</li>
+      </ul>
     </details>
 
     <details>
@@ -377,15 +385,21 @@
     <details id="contact">
       <summary>開発者・お問い合わせ</summary>
       <ul>
-        <li><b>開発・運営</b>：d94231（個人）。<b>個人が開発・運営する非営利のツール</b>で、特定の企業・団体とは関係ありません。</li>
-        <li>「公的統計を、専門家だけでなく誰でも使える形にする」をテーマに、統計・データ分析の記事執筆やコンペ参加を通じて活動しています。</li>
+        <li><b>開発・運営</b>：d94231（個人）。<b>統計データ分析</b>を趣味・研究テーマとして活動する個人開発者です。<b>個人が開発・運営する非営利のツール</b>で、特定の企業・団体とは関係ありません。</li>
+        <li>「<b>公的統計を、専門家だけでなく誰でも使える形にする</b>」をテーマに、統計・データ分析の記事執筆やコンペ参加を通じて活動しています。</li>
+        <li><b>活動リンク</b>：
+          <a href="https://qiita.com/d94231" target="_blank" rel="noopener">Qiita</a> ／
+          <a href="https://github.com/nom2025" target="_blank" rel="noopener">GitHub</a> ／
+          <a href="https://x.com/naopapagon" target="_blank" rel="noopener">X（旧Twitter）</a>
+          （継続的に統計・データ分析に取り組んでいます）</li>
         <li><b>お問い合わせ・バグ報告</b>：<b>数字がおかしい／改善要望／誤字</b>など、どんな小さなことでもお気軽にご連絡ください 〔 <a href="mailto:d94231@gmail.com">d94231@gmail.com</a> 〕。いただいたご連絡は改善の参考にします。</li>
       </ul>
     </details>
   </section>
 
   <footer>
-    <p><strong>あなたの老後資金、HOW MUCH?</strong> ／ プロトタイプ v0 ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
+    <p><strong>あなたの老後資金、HOW MUCH?</strong> ― <em>公的統計を、あなた自身の数字に。</em></p>
+    <p>β版 ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
     <p>個人が開発・運営する非営利のツールです（開発：d94231）</p>
     <p><a href="#contact">お問い合わせ</a> ／ <a href="#privacy">プライバシーポリシー・免責事項</a></p>
   </footer>

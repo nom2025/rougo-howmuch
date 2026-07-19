@@ -54,6 +54,7 @@ header h1 { margin: 0 0 6px; font-size: 1.8rem; }
 header .sub { margin: 0 auto; max-width: 560px; opacity: .95; font-size: .96rem; }
 /* 意味のかたまり単位で改行（語の途中で割れない） */
 header .sub span { display: inline-block; white-space: nowrap; }
+header .hero-src { margin: 8px auto 0; max-width: 560px; font-size: .76rem; opacity: .8; }
 header strong { color: var(--gold); }
 
 /* ヒーロー：「2,000万円は誰の数字？」条件バンドルの対比（色で優劣を付けない） */
@@ -314,6 +315,8 @@ main {
 .readme .faq dt { font-weight: 700; color: var(--accent); font-size: .86rem; margin-top: 12px; }
 .readme .faq dt:first-child { margin-top: 0; }
 .readme .faq dd { margin: 4px 0 0; padding-left: 0; color: #333; font-size: .86rem; line-height: 1.6; }
+.readme .srclist { color: #333; }
+.readme .srclist a { color: var(--accent); }
 .readme .datalist { list-style: none; padding-left: 0; }
 .readme .datalist li { padding-left: 16px; position: relative; }
 .readme .datalist li::before { content: "•"; color: var(--gold); position: absolute; left: 2px; }
