@@ -258,9 +258,18 @@
 
   <!-- 解釈・前提・注意事項（最下部に集約） -->
   <section class="panel readme">
-    <h2>解釈・前提・注意事項</h2>
+    <h2>このサイトについて・前提・注意事項</h2>
 
     <details open>
+      <summary>このサイトについて</summary>
+      <ul>
+        <li>本サイトは、総務省「家計調査」などの<b>公的統計</b>をもとに、老後資金を個人向けに試算できるよう作成したシミュレーターです。</li>
+        <li>「老後2,000万円問題」のような<b>全国平均</b>ではなく、<b>都道府県別・世帯構成・生活スタイルの違い</b>を反映した試算を目指しています（背骨：<em>「その数字は、誰を代表しているのか？」</em>）。</li>
+        <li>個人が開発・公開している<b>非営利のツール</b>です。公開統計を用いた概算であり、正確性を保証するものではありませんが、出典と前提を明示して<b>安心して使える形</b>を心がけています。</li>
+      </ul>
+    </details>
+
+    <details>
       <summary>計算の前提と式</summary>
       <ul>
         <li><b>65歳で定年退職</b>し、それ以降は「年金＋貯蓄の取り崩し」で暮らす想定。</li>
@@ -304,11 +313,21 @@
         <li><b>免責</b>：本ツールは公開統計を用いた<b>概算シミュレーション</b>であり、将来の金額を保証するものではありません。特定の金融商品の勧誘や投資助言ではなく、意思決定はご自身の責任でお願いします。内容は予告なく変更する場合があります。</li>
       </ul>
     </details>
+
+    <details id="contact">
+      <summary>開発者・お問い合わせ</summary>
+      <ul>
+        <li><b>開発・運営</b>：d94231（個人）。<b>個人が開発・運営する非営利のツール</b>で、特定の企業・団体とは関係ありません。</li>
+        <li>「公的統計を、専門家だけでなく誰でも使える形にする」をテーマに、統計・データ分析の記事執筆やコンペ参加を通じて活動しています。</li>
+        <li><b>お問い合わせ</b>：ご意見・ご要望・不具合のご報告は、メールまでお気軽にお寄せください 〔 <a href="mailto:d94231@gmail.com">d94231@gmail.com</a> 〕。いただいたご連絡は改善の参考にします。</li>
+      </ul>
+    </details>
   </section>
 
   <footer>
     <p><strong>あなたの老後資金、HOW MUCH?</strong> ／ プロトタイプ v0 ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
-    <p><a href="#privacy">プライバシーポリシー・免責事項</a></p>
+    <p>個人が開発・運営する非営利のツールです（開発：d94231）</p>
+    <p><a href="#contact">お問い合わせ</a> ／ <a href="#privacy">プライバシーポリシー・免責事項</a></p>
   </footer>
 
   <div class="sticky-summary" id="stickyBar">
@@ -322,5 +341,19 @@
 
   <script src="data.js?v=4"></script>
   <script src="app.js?v=4"></script>
+  <script>
+    // フッター等のアンカーで #contact / #privacy を開いた折りたたみに展開してスクロール
+    function openTargetDetails() {
+      var id = (location.hash || "").slice(1);
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (el && el.tagName.toLowerCase() === "details") {
+        el.open = true;
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+    window.addEventListener("hashchange", openTargetDetails);
+    openTargetDetails();
+  </script>
 </body>
 </html>
