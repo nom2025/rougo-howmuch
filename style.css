@@ -303,6 +303,23 @@ main {
 .readme code { background: #f2f0f8; padding: 1px 6px; border-radius: 5px; font-size: .82rem; }
 .readme .src { color: var(--muted); font-size: .82rem; line-height: 1.6; margin: 10px 0 14px; }
 
+/* 結果シェア */
+.share { max-width: 900px; margin: 0 auto 18px; text-align: center; }
+.share-lead { font-size: 1.05rem; margin: 0 0 4px; }
+.share-lead b { color: var(--accent); }
+.share-desc { color: var(--muted); font-size: .82rem; margin: 0 0 14px; }
+.share-btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.sh-btn {
+  border: none; border-radius: 999px; padding: 10px 18px; font-size: .9rem;
+  font-weight: 700; color: #fff; cursor: pointer; transition: opacity .2s ease;
+}
+.sh-btn:hover { opacity: .88; }
+.sh-btn.x { background: #111827; }
+.sh-btn.line { background: #06c755; }
+.sh-btn.fb { background: #1877f2; }
+.sh-btn.copy { background: var(--accent); }
+.share-msg { color: #1e8449; font-weight: 700; font-size: .86rem; margin: 12px 0 0; }
+
 footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 20px; }
 footer em { color: var(--accent); font-style: normal; font-weight: 600; }
 

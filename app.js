@@ -418,6 +418,10 @@ function render() {
   }
   lastNeedMan = needMan;
 
+  // シェア用リード文
+  const sl = $("shareLead");
+  if (sl) sl.innerHTML = `あなたの必要額は <b>${man(rNormal.need)}万円</b>（標準シナリオ）。この結果をシェアできます。`;
+
   // ゲージ（標準シナリオ vs 2,000万）
   const maxScale = Math.max(rNormal.need, NATIONAL_AVG_JPY) * 1.05;
   $("barYou").style.width = (rNormal.need / maxScale * 100) + "%";
@@ -455,6 +459,83 @@ function onPensionChanged() {
   render();
 }
 
+// ===== 結果シェア（入力条件＋結果をURLパラメータ化） =====
+// いまの状態をURLに直列化（費目は千円単位に圧縮して短く）
+function buildShareUrl() {
+  const opts = currentOpts();
+  const sex = document.querySelector('input[name="sex"]:checked').value;
+  const cats = CATEGORIES.map((c) => Math.round((+$(`cat_${c.key}`).value || 0) / 1000)).join("-");
+  const q = new URLSearchParams();
+  q.set("p", sel.value);
+  q.set("h", opts.household);
+  q.set("t", opts.tenure);
+  q.set("s", sex);
+  q.set("st", opts.style);
+  q.set("pm", opts.mode);
+  q.set("fp", opts.flat);
+  q.set("rs", opts.reserve);
+  if (opts.workIncome) { q.set("wi", opts.workIncome); q.set("wy", opts.workYears); }
+  if (opts.loanMonthly) { q.set("lm", opts.loanMonthly); q.set("ly", opts.loanYears); }
+  q.set("cat", cats);
+  return location.origin + location.pathname + "?" + q.toString();
+}
+
+// URLパラメータから状態を復元（あれば true）
+function applyStateFromUrl() {
+  const q = new URLSearchParams(location.search);
+  if (![...q.keys()].length) return false;
+  const setRadio = (name, val) => {
+    const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+    if (el) el.checked = true;
+  };
+  if (q.get("p") && PREF_DATA.some((p) => p.name === q.get("p"))) sel.value = q.get("p");
+  if (q.get("h")) setRadio("household", q.get("h"));
+  if (q.get("t")) setRadio("tenure", q.get("t"));
+  if (q.get("s")) setRadio("sex", q.get("s"));
+  if (q.get("pm")) setRadio("pensionMode", q.get("pm"));
+  if (q.get("st")) $("style").value = q.get("st");
+  if (q.get("fp")) $("flatPension").value = q.get("fp");
+  if (q.get("rs")) $("reserve").value = q.get("rs");
+  $("workIncome").value = q.get("wi") || 0;
+  $("workYears").value = q.get("wy") || 0;
+  $("loanMonthly").value = q.get("lm") || 0;
+  $("loanYears").value = q.get("ly") || 0;
+  // まず県・世帯・スタイルの初期費目を入れ、その後URLの費目で上書き
+  resetCategories();
+  if (q.get("cat")) {
+    const arr = q.get("cat").split("-").map((x) => Math.round(+x || 0) * 1000);
+    CATEGORIES.forEach((c, i) => {
+      if (arr[i] != null && !isNaN(arr[i])) $(`cat_${c.key}`).value = arr[i];
+    });
+  }
+  return true;
+}
+
+function share(method) {
+  const url = buildShareUrl();
+  const needMan = $("need").textContent;
+  const text = `私の老後資金の必要額は約${needMan}万円でした（標準シナリオ）。あなたはいくら？｜あなたの老後資金、HOW MUCH?`;
+  if (method === "copy") {
+    const done = () => {
+      const m = $("shareMsg");
+      m.hidden = false;
+      setTimeout(() => (m.hidden = true), 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, () => window.prompt("このURLをコピーしてください", url));
+    } else {
+      window.prompt("このURLをコピーしてください", url);
+    }
+  } else {
+    let sh = "";
+    if (method === "twitter") sh = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    else if (method === "line") sh = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`;
+    else if (method === "facebook") sh = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(sh, "_blank", "noopener,noreferrer,width=600,height=640");
+  }
+  track("share", { method });
+}
+
 // イベント（GA4計測：離散的な選択のみ送信。スライダーは確定時=changeで1回だけ）
 sel.addEventListener("change", () => { resetCategories(); render(); track("select_pref", { pref: sel.value }); });
 $("style").addEventListener("change", () => { resetCategories(); render(); track("change_style", { style: $("style").value }); });
@@ -483,8 +564,12 @@ document.querySelectorAll('input[name="household"]').forEach((el) =>
   })
 );
 $("resetCat").addEventListener("click", () => { resetCategories(); render(); track("reset_categories"); });
+$("shareX").addEventListener("click", () => share("twitter"));
+$("shareLine").addEventListener("click", () => share("line"));
+$("shareFb").addEventListener("click", () => share("facebook"));
+$("shareCopy").addEventListener("click", () => share("copy"));
 
-// 初期化
+// 初期化（共有リンクで開かれた場合は状態を復元）
 renderSpread();
-resetCategories();
+if (!applyStateFromUrl()) resetCategories();
 render();
