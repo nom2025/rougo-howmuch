@@ -19,6 +19,15 @@ const PENSION_SINGLE_RATIO = 0.56;
 // 年金一律モードの初期値（世帯別）
 const FLAT_PENSION_DEFAULT = { couple: 220000, single: 130000 };
 
+// 夫婦の年金は「夫の年金＋妻の働き方」で分けて入力する（世帯合計は夫＋妻）
+// 夫の初期値＝モデル世帯の厚生年金＋基礎（約15.2万）。妻を専業主婦(基礎6.8万)にすると合計≒22万でモデル世帯と一致
+const HUSBAND_PENSION_DEFAULT = 152000;
+const WIFE_PENSION = {
+  homemaker: 68000,   // 専業主婦：基礎年金のみ（満額目安 約6.8万）
+  parttime: 100000,   // パート中心：厚生年金の加入期間が短め（約10万）
+  fulltime: 140000,   // 共働き・フルタイム長期（約14万）
+};
+
 // 生活スタイル別の目標生活費（夫婦・月額）。県別の費目構成比を保ったままこの総額へスケールする
 // rich=ゆとり(積極的に楽しむ) / standard=節約しつつ楽しむ。frugal=年金の範囲内、actual=県平均の実データ
 const STYLE_TARGET = { rich: 360000, standard: 240000 };

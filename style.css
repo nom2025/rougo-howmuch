@@ -139,6 +139,10 @@ main {
 }
 .inputs small { display: block; color: var(--muted); font-size: .76rem; margin-top: 4px; }
 .reserve-note { line-height: 1.5; background: #faf7ef; border: 1px dashed var(--gold); border-radius: 8px; padding: 8px 10px; }
+#coupleWrap { border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 2px; margin-bottom: 16px; background: #fafafd; }
+#coupleWrap label { margin-bottom: 12px; }
+.pension-sum { margin: 4px 0 6px; font-size: .92rem; color: var(--ink); }
+.pension-sum b { color: var(--accent); font-size: 1.02rem; }
 #yearsInfo { color: var(--accent); font-weight: 600; }
 .subgroup {
   border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 2px;

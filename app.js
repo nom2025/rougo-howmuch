@@ -291,12 +291,19 @@ function currentYears() {
 }
 
 function currentOpts() {
+  const household = currentHousehold();
+  const husband = +$("husbandPension").value;
+  const wifeType = $("wifeType").value;
+  // 夫婦は「夫の年金＋妻の区分」の合計、単身は単身スライダー
+  const flat = household === "couple" ? husband + (WIFE_PENSION[wifeType] || 0) : +$("flatPension").value;
   return {
     mode: document.querySelector('input[name="pensionMode"]:checked').value,
-    household: currentHousehold(),
+    household,
     tenure: document.querySelector('input[name="tenure"]:checked').value,
     style: $("style").value,
-    flat: +$("flatPension").value,
+    flat,
+    husband,
+    wifeType,
     years: currentYears(),
     reserve: +$("reserve").value,
     workIncome: +$("workIncome").value,
@@ -312,19 +319,23 @@ function render() {
   const consMonthly = readCategoryTotal();
 
   // スライダー/前提のラベル更新
-  $("flatVal").textContent = man(opts.flat) + "万円";
   $("reserveVal").textContent = man(opts.reserve) + "万円";
   $("workIncomeVal").textContent = opts.workIncome > 0 ? man(opts.workIncome) + "万円" : "なし";
   $("workYearsVal").textContent = opts.workYears + "年";
   $("loanMonthlyVal").textContent = opts.loanMonthly > 0 ? man(opts.loanMonthly) + "万円" : "なし";
   $("loanYearsVal").textContent = opts.loanYears + "年";
   $("flatWrap").style.display = opts.mode === "flat" ? "block" : "none";
-  if (opts.household === "single") {
-    $("flatUnit").textContent = "単身1人分";
-    $("flatNote").textContent = "単身の目安：約13万円/月（基礎年金のみなら約6.8万円）。";
+  // 年金一律モードの内訳表示（夫婦は夫＋妻／単身は1本スライダー）
+  const isCouple = opts.household === "couple";
+  $("coupleWrap").style.display = isCouple ? "block" : "none";
+  $("singleWrap").style.display = isCouple ? "none" : "block";
+  if (isCouple) {
+    $("husbandVal").textContent = man(opts.husband) + "万円";
+    $("pensionSum").innerHTML = `世帯合計（想定年金）＝ 夫${man(opts.husband)}万 ＋ 妻${man(WIFE_PENSION[opts.wifeType] || 0)}万 ＝ <b>${man(opts.flat)}万円/月</b>`;
+    $("coupleNote").textContent = "妻の年金は働き方で大きく変わります（区分は目安）。夫のスライダーを動かすと世帯合計も変わります。";
   } else {
-    $("flatUnit").textContent = "世帯合計＝夫婦2人分";
-    $("flatNote").textContent = "夫婦の目安：モデル世帯（厚生年金＋基礎年金×2人）で約22万円/月。";
+    $("flatVal").textContent = man(opts.flat) + "万円";
+    $("flatNote").textContent = "単身の目安：約13万円/月（基礎年金のみなら約6.8万円）。";
   }
   // 住まいの注記
   if (opts.tenure === "rent") {
@@ -472,7 +483,8 @@ function buildShareUrl() {
   q.set("s", sex);
   q.set("st", opts.style);
   q.set("pm", opts.mode);
-  q.set("fp", opts.flat);
+  if (opts.household === "couple") { q.set("hp", opts.husband); q.set("wt", opts.wifeType); }
+  else { q.set("fp", opts.flat); }
   q.set("rs", opts.reserve);
   if (opts.workIncome) { q.set("wi", opts.workIncome); q.set("wy", opts.workYears); }
   if (opts.loanMonthly) { q.set("lm", opts.loanMonthly); q.set("ly", opts.loanYears); }
@@ -494,6 +506,8 @@ function applyStateFromUrl() {
   if (q.get("s")) setRadio("sex", q.get("s"));
   if (q.get("pm")) setRadio("pensionMode", q.get("pm"));
   if (q.get("st")) $("style").value = q.get("st");
+  if (q.get("hp")) $("husbandPension").value = q.get("hp");
+  if (q.get("wt") && WIFE_PENSION[q.get("wt")] != null) $("wifeType").value = q.get("wt");
   if (q.get("fp")) $("flatPension").value = q.get("fp");
   if (q.get("rs")) $("reserve").value = q.get("rs");
   $("workIncome").value = q.get("wi") || 0;
@@ -545,6 +559,9 @@ $("style").addEventListener("change", () => { resetCategories(); render(); track
 });
 $("flatPension").addEventListener("input", onPensionChanged);
 $("flatPension").addEventListener("change", () => track("adjust_slider", { control: "flatPension", value: +$("flatPension").value }));
+$("husbandPension").addEventListener("input", onPensionChanged);
+$("husbandPension").addEventListener("change", () => track("adjust_slider", { control: "husbandPension", value: +$("husbandPension").value }));
+$("wifeType").addEventListener("change", () => { onPensionChanged(); track("change_wife_type", { wife: $("wifeType").value }); });
 CATEGORIES.forEach((c) => $(`cat_${c.key}`).addEventListener("input", render));
 document.querySelectorAll('input[name="pensionMode"]').forEach((el) =>
   el.addEventListener("change", () => { onPensionChanged(); track("change_pension_mode", { mode: el.value }); })
@@ -557,7 +574,8 @@ document.querySelectorAll('input[name="tenure"]').forEach((el) =>
 );
 document.querySelectorAll('input[name="household"]').forEach((el) =>
   el.addEventListener("change", () => {
-    $("flatPension").value = FLAT_PENSION_DEFAULT[currentHousehold()];
+    // 単身に切り替えたときだけ単身の年金初期値へ（夫婦は夫＋妻の入力を使う）
+    if (currentHousehold() === "single") $("flatPension").value = FLAT_PENSION_DEFAULT.single;
     resetCategories();
     render();
     track("change_household", { household: el.value });

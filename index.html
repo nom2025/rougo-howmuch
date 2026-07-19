@@ -45,7 +45,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <header>
@@ -131,10 +131,26 @@
           <small>一律＝自分で額を設定／地域差＝選んだ県の平均受給額。</small>
         </label>
 
-        <label id="flatWrap">想定年金（月額・<span id="flatUnit">世帯合計</span>）：<span id="flatVal"></span>
-          <input type="range" id="flatPension" min="60000" max="300000" step="5000" value="220000" />
-          <small id="flatNote"></small>
-        </label>
+        <div id="flatWrap">
+          <div id="coupleWrap">
+            <label>夫の年金（月額）：<span id="husbandVal"></span>
+              <input type="range" id="husbandPension" min="80000" max="350000" step="5000" value="152000" />
+            </label>
+            <label>妻の働き方（受け取る年金の目安）
+              <select id="wifeType">
+                <option value="homemaker" selected>専業主婦（基礎年金のみ・約6.8万）</option>
+                <option value="parttime">パート中心（約10万）</option>
+                <option value="fulltime">共働き・フルタイム長期（約14万）</option>
+              </select>
+            </label>
+            <p class="pension-sum" id="pensionSum"></p>
+            <small id="coupleNote"></small>
+          </div>
+          <label id="singleWrap">想定年金（月額・単身1人分）：<span id="flatVal"></span>
+            <input type="range" id="flatPension" min="60000" max="300000" step="5000" value="130000" />
+            <small id="flatNote"></small>
+          </label>
+        </div>
 
         <label>生活の予備費（住宅修繕・葬儀・大きな交際費など）：<span id="reserveVal"></span>
           <input type="range" id="reserve" min="0" max="20000000" step="500000" value="3000000" />
@@ -304,7 +320,7 @@
     <div class="ss-sub" id="ssSub"></div>
   </div>
 
-  <script src="data.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="data.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
