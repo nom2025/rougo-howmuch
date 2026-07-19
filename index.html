@@ -26,13 +26,15 @@
 
   <!-- Google Analytics 4 -->
   <script>
-    // ★このアプリ専用の GA4 測定ID（G-から始まる）に置き換えてください（Qiita用とは別プロパティ推奨）
-    window.GA_MEASUREMENT_ID = "G-R5G89HBK3V";
+    window.GA_MEASUREMENT_ID = "G-R5G89HBK3V"; // 本アプリ専用のGA4プロパティ
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     (function () {
       var id = window.GA_MEASUREMENT_ID;
       if (!id || id.indexOf("XXXX") !== -1) return; // 未設定なら計測しない（誤送信防止）
+      // ローカル/プレビュー（file://・localhost）は計測しない＝自分のテストで実績を汚さない
+      var h = location.hostname;
+      if (!h || h === "localhost" || h === "127.0.0.1") return;
       var s = document.createElement("script");
       s.async = true;
       s.src = "https://www.googletagmanager.com/gtag/js?id=" + id;
