@@ -86,6 +86,9 @@ header strong { color: var(--gold); }
 @media (max-width: 560px) {
   .hero-compare { flex-direction: column; }
   .hc-vs { flex-direction: row; gap: 10px; }
+  /* スマホで見出し・バッジが見切れないよう縮小＆折り返し可 */
+  header h1 { font-size: 1.35rem; }
+  header .badge { font-size: .72rem; white-space: normal; line-height: 1.4; }
 }
 
 /* 差別化ストリップ */
@@ -263,8 +266,9 @@ main {
 .cmp-val small { font-size: .72rem; font-weight: 600; margin-left: 1px; }
 .cmp-row.me .cmp-fill { background: var(--accent); }
 .cmp-row.me .cmp-name b { color: var(--accent); }
-.cmp-row.high .cmp-fill { background: #d9695c; }
-.cmp-row.low .cmp-fill { background: #4aa877; }
+/* 最高/最低は優劣を示唆しない中立グレー（あなた=紫、全国=金だけ強調） */
+.cmp-row.high .cmp-fill { background: #9aa2b1; }
+.cmp-row.low .cmp-fill { background: #9aa2b1; }
 .cmp-row.nat .cmp-fill { background: var(--gold); opacity: .55; }
 .cmp-row.nat .cmp-name b { color: var(--gold); }
 @media (max-width: 560px) {
