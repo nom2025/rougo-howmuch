@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>あなたの老後資金、HOW MUCH? ｜ 47都道府県の実データで計算する老後資金シミュレーター</title>
-  <meta name="description" content="「老後2,000万円」は全国のならし。47都道府県の実データで、あなたの条件（住む地域・世帯・持ち家/賃貸・生活スタイル）に合わせて老後資金の必要額を計算し直す無料シミュレーター。" />
+  <title>老後資金シミュレーター｜47都道府県別・持ち家/賃貸・年金対応 - あなたの老後資金、HOW MUCH?</title>
+  <meta name="description" content="「老後2,000万円問題」を総務省「家計調査」など47都道府県の公的統計で再計算。持ち家/賃貸・夫婦/単身・年金・生活スタイルを変えながら、あなたの老後資金の必要額をシミュレーションできる無料ツールです。" />
   <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#43296b" />
   <meta name="google-site-verification" content="IJf4pCBJlN00MwnR3umwq8fAw-RlA_kzr_2-gA7EDII" />
@@ -45,6 +45,41 @@
     "description": "47都道府県の公的統計データで、住む地域・世帯・持ち家/賃貸・生活スタイルに合わせて老後資金の必要額を計算し直す無料シミュレーター。",
     "isAccessibleForFree": true,
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+  }
+  </script>
+
+  <!-- 構造化データ：FAQ（本文の「よくある質問」と一致） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "本当にこの金額が必要になりますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "いいえ。あくまで公開統計を用いた目安です。実際の必要額は健康状態・寿命・物価・制度変更などで変わります。1つの数字でなく“幅”として捉えてください。" }
+      },
+      {
+        "@type": "Question",
+        "name": "投資・運用の収益は考慮していますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "していません。貯蓄の取り崩しのみで計算しており、資産運用による増減は含みません。" }
+      },
+      {
+        "@type": "Question",
+        "name": "年金や生活費は税引前ですか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "消費支出ベースの概算です。税・社会保険料は簡略化しており、手取り/額面を厳密に区別していません。" }
+      },
+      {
+        "@type": "Question",
+        "name": "入力した金額はどこかに保存されますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "いいえ。計算はあなたのブラウザ内で完結し、入力金額がサーバーに送信・保存されることはありません。" }
+      },
+      {
+        "@type": "Question",
+        "name": "市区町村単位で見られますか？",
+        "acceptedAnswer": { "@type": "Answer", "text": "現状は都道府県平均までです。同じ県でも地域差があるため、費目内訳を直接編集して調整してください（市区町村対応は検討中）。" }
+      }
+    ]
   }
   </script>
 
@@ -299,7 +334,7 @@
     <details>
       <summary>なぜ作ったのか</summary>
       <ul>
-        <li>ニュースでは「<b>老後2,000万円必要</b>」と紹介されることがあります。でも、それが<b>誰の平均</b>なのかは語られません。</li>
+        <li>ニュースでは「<b>老後2,000万円必要</b>」（いわゆる<b>老後2000万円問題</b>）と紹介されることがあります。でも、それが<b>誰の平均</b>なのかは語られません。</li>
         <li>実際は、<b>住む地域・持ち家か賃貸か・世帯構成・生活スタイル</b>によって必要額は大きく変わります。全国のならした平均は、あなた個人を代表していないかもしれません。</li>
         <li>「<b>自分の場合はいくらなのか</b>」を自分の手で確かめるきっかけになればと思い、公開統計を"自分ごと化"できる形にして公開しました。</li>
       </ul>
@@ -427,7 +462,7 @@
 
   <footer>
     <p><strong>あなたの老後資金、HOW MUCH?</strong> ― <em>公的統計を、あなた自身の数字に。</em></p>
-    <p>β版 <span id="appVer"></span> ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
+    <p>β版 <span id="appVer"></span> ／ 最終更新：2026-07-20 ／ 背骨：<em>「その数字は、誰を代表しているのか？」</em></p>
     <p>個人が開発・運営する非営利のツールです（開発：d94231）</p>
     <p><a href="#contact">お問い合わせ</a> ／ <a href="#privacy">プライバシーポリシー・免責事項</a></p>
   </footer>
